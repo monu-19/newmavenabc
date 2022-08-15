@@ -1,0 +1,44 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('ContinuousDownload')
+        {
+            steps
+            {
+                 git 'https://github.com/monu-19/mavenab.git'
+            }
+        }
+        stage('ContinuousBuild')
+        {
+            steps
+            {
+               sh 'mvn package'
+            }
+        }
+        stage('ContinuousDeployment')
+        {
+            steps
+            {
+               deploy adapters: [tomcat9(credentialsId: '4a198297-7196-45d6-9475-249fcb77e483', path: '', url: 'http://172.31.93.145:8080')], contextPath: 'testapp', war: '**/*.war'
+            }
+        }
+        stage('ContinuousTesting')
+        {
+           steps
+            {
+                git 'https://github.com/intelliqittrainings/FunctionalTesting.git'
+                sh 'java -jar /home/ubuntu/.jenkins/workspace/ScrpittedPipeline3/testing.jar'
+            }
+        }
+        stage('ContinuousDelivery')
+        {
+            steps
+            {
+                input message: 'Permission Required to Deploy', submitter: 'somu'
+                deploy adapters: [tomcat9(credentialsId: '4a198297-7196-45d6-9475-249fcb77e483', path: '', url: 'http://172.31.83.35:8080')], contextPath: 'prodapp', war: '**/*.war'
+            }
+        }
+    }
+}
